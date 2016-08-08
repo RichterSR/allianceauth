@@ -31,6 +31,7 @@ class AuthServicesInfo(models.Model):
     pathfinder_password = models.CharField(max_length=254, blank=True, default="")
     main_char_id = models.CharField(max_length=64, blank=True, default="")
     is_blue = models.BooleanField(default=False)
+    is_blue_10 = models.BooleanField(default=False)
     user = models.ForeignKey(User)
 
     def __str__(self):

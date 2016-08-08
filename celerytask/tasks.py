@@ -236,13 +236,13 @@ def update_discourse_groups(pk):
     if len(groups) == 0:
         logger.debug("No syncgroups found for user. Adding empty group.")
         groups.append('empty')
-    logger.debug("Updating user %s discourse groups to %s" % (user, groups))
+    logger.debug("Updating user %s discord groups to %s" % (user, groups))
     try:
         DiscourseManager.update_groups(authserviceinfo.discourse_username, groups)
     except:
         logger.warn("Discourse group sync failed for %s, retrying in 10 mins" % user, exc_info=True)
         raise self.retry(countdown = 60 * 10)
-    logger.debug("Updated user %s discourse groups." % user)
+    logger.debug("Updated user %s discord groups." % user)
 
 @task
 def update_all_discourse_groups():
@@ -250,30 +250,31 @@ def update_all_discourse_groups():
     for user in AuthServicesInfo.objects.exclude(discourse_username__exact=''):
         update_discourse_groups.delay(user.user_id)
 
-@task
-def update_seat_roles(pk):
-    user = User.objects.get(pk=pk)
-    logger.debug("Updating SeAT roles for user %s" % user)
-    authserviceinfo = AuthServicesInfo.objects.get(user=user)
-    groups = []
-    for group in user.groups.all():
-        groups.append(str(group.name))
-    if len(groups) == 0:
-        logger.debug("No syncgroups found for user. Adding empty group.")
-        groups.append('empty')
-    logger.debug("Updating user %s SeAT roles to %s" % (user, groups))
-    try:
-        SeatManager.update_roles(authserviceinfo.seat_username, groups)
-    except:
-        logger.warn("SeAT group sync failed for %s, retrying in 10 mins" % user, exc_info=True)
-        raise self.retry(countdown = 60 * 10)
-    logger.debug("Updated user %s SeAT roles." % user)
+@task  
+def update_seat_roles(pk):  
+    user = User.objects.get(pk=pk)  
+    logger.debug("Updating SeAT roles for user %s" % user)  
+    authserviceinfo = AuthServicesInfo.objects.get(user=user)  
+    groups = []  
+    for group in user.groups.all():  
+        groups.append(str(group.name))  
+    if len(groups) == 0:  
+        logger.debug("No syncgroups found for user. Adding empty group.")  
+        groups.append('empty')  
+    logger.debug("Updating user %s SeAT roles to %s" % (user, groups))  
+    try:  
+        SeatManager.update_roles(authserviceinfo.seat_username, groups)  
+    except:  
+        logger.warn("SeAT group sync failed for %s, retrying in 10 mins" % user, exc_info=True)  
+        raise self.retry(countdown = 60 * 10)  
+    logger.debug("Updated user %s SeAT roles." % user)  
+  
+@task  
+def update_all_seat_roles():  
+    logger.debug("Updating ALL SeAT roles")  
+    for user in AuthServicesInfo.objects.exclude(seat_username__exact=''):  
+        update_seat_roles.delay(user.user_id)  
 
-@task
-def update_all_seat_roles():
-    logger.debug("Updating ALL SeAT roles")
-    for user in AuthServicesInfo.objects.exclude(seat_username__exact=''):
-        update_seat_roles.delay(user.user_id)
 
 def assign_corp_group(auth):
     corp_group = None
@@ -336,9 +337,18 @@ def make_member(user):
         logger.info("Removing user %s blue permission to transition to member" % user)
         remove_member_permission(user, 'blue_member')
         change = True
+    if check_if_user_has_permission(user, 'blue_10_member'):
+        logger.info("Removing user %s blue 10 permission to transition to member" % user)
+        remove_member_permission(user, 'blue_10_member')
+        change = True
     blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
     if blue_group in user.groups.all():
         logger.info("Removing user %s blue group" % user)
+        user.groups.remove(blue_group)
+        change = True
+    blue_10_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_10_GROUP)
+    if blue_10_group in user.groups.all():
+        logger.info("Removing user %s blue 10 group" % user)
         user.groups.remove(blue_group)
         change = True
     # make member
@@ -355,6 +365,7 @@ def make_member(user):
     if auth.is_blue:
         logger.info("Marking user %s as non-blue" % user)
         auth.is_blue = False
+        auth.is_blue_10 = False
         auth.save()
         change = True
     assign_corp_group(auth)
@@ -379,15 +390,25 @@ def make_blue(user):
         logger.info("Adding user %s blue permission" % user)
         add_member_permission(user, 'blue_member')
         change = True
+    if check_if_user_has_permission(user, 'blue_10_member') is False:
+        logger.info("Adding user %s blue 10 permission" % user)
+        add_member_permission(user, 'blue_10_member')
+        change = True
     blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
     if not blue_group in user.groups.all():
         logger.info("Adding user %s to blue group" % user)
+        user.groups.add(blue_group)
+        change = True
+    blue_10_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_10_GROUP)
+    if not blue_10_group in user.groups.all():
+        logger.info("Adding user %s to blue 10 group" % user)
         user.groups.add(blue_group)
         change = True
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
     if auth.is_blue is False:
         logger.info("Marking user %s as blue" % user)
         auth.is_blue = True
+        auth.is_blue_10 = False
         auth.save()
         change = True
     assign_corp_group(auth)
@@ -433,10 +454,7 @@ def set_state(user):
     if user.is_superuser:
         return
     change = False
-    if user.is_active:
-        state = determine_membership_by_user(user)
-    else:
-        state = False
+    state = determine_membership_by_user(user)
     logger.debug("Assigning user %s to state %s" % (user, state))
     if state == "MEMBER":
         change = make_member(user)
@@ -505,12 +523,11 @@ def refresh_api(api_key_pair):
         EveManager.delete_api_key_pair(api_key_pair.api_id, user.id)
         notify(user, "API Key Deleted", message="Your API key ID %s is invalid. It and its associated characters have been deleted." % api_key_pair.api_id, level="danger")
 
-
-@periodic_task(run_every=crontab(minute="*/30"))
-def run_api_seat_sync():
-    if settings.ENABLE_AUTH_SEAT or settings.ENABLE_BLUE_SEAT:
-        logger.debug("Running eveapi synchronization with SeAT")
-        SeatManager.synchronize_eveapis()
+@periodic_task(run_every=crontab(minute="*/30"))  
+def run_api_seat_sync():  
+    if settings.ENABLE_AUTH_SEAT or settings.ENABLE_BLUE_SEAT:  
+        logger.debug("Running eveapi synchronization with SeAT")  
+        SeatManager.synchronize_eveapis()  
 
 # Run every 3 hours
 @periodic_task(run_every=crontab(minute=0, hour="*/3"))

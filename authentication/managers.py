@@ -115,6 +115,16 @@ class AuthServicesInfoManager:
             logger.error("Failed to update user %s teamspeak3 info: user does not exist." % user)
 
     @staticmethod
+    def update_is_blue_10(is_blue_10, user):
+        if User.objects.filter(username=user.username).exists():
+            logger.debug("Updating user %s blue 10 status: %s" % (user, is_blue_10))
+            authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
+            authserviceinfo.is_blue_10 = is_blue_10
+            authserviceinfo.save(update_fields=['is_blue_10'])
+            logger.info("Updated user %s blue 10 status to %s in authservicesinfo model." % (user, is_blue_10))
+
+
+    @staticmethod
     def update_is_blue(is_blue, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s blue status: %s" % (user, is_blue))
@@ -158,8 +168,8 @@ class AuthServicesInfoManager:
             logger.info("Updated user %s IPS4 info in authservicesinfo model." % user)
         else:
             logger.error("Failed to update user %s IPS4 info: user does not exist." % user)
-
-    @staticmethod
+    
+    @staticmethod  
     def update_user_seat_info(username, password, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s SeAT info: username %s" % (user, username))

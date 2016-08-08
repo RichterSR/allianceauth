@@ -82,7 +82,7 @@ class EveManager:
 
     @staticmethod
     def create_alliance_info(alliance_id, alliance_name, alliance_ticker, alliance_executor_corp_id,
-                             alliance_member_count, is_blue):
+                             alliance_member_count, is_blue, is_blue_10):
         logger.debug("Creating alliance info for alliance %s id %s" % (alliance_name, alliance_id))
         if not EveManager.check_if_alliance_exists_by_id(alliance_id):
             alliance_info = EveAllianceInfo()
@@ -92,26 +92,28 @@ class EveManager:
             alliance_info.executor_corp_id = alliance_executor_corp_id
             alliance_info.member_count = alliance_member_count
             alliance_info.is_blue = is_blue
+            alliance_info.is_blue_10 = is_blue_10
             alliance_info.save()
             logger.info("Created alliance model for %s" % alliance_info)
         else:
             logger.warn("Attempting to create existing alliance model with id %s" % alliance_id)
 
     @staticmethod
-    def update_alliance_info(alliance_id, alliance_executor_corp_id, alliance_member_count, is_blue):
+    def update_alliance_info(alliance_id, alliance_executor_corp_id, alliance_member_count, is_blue, is_blue_10):
         logger.debug("Updating alliance model with id %s" % alliance_id)
         if EveManager.check_if_alliance_exists_by_id(alliance_id):
             alliance_info = EveAllianceInfo.objects.get(alliance_id=alliance_id)
             alliance_info.executor_corp_id = alliance_executor_corp_id
             alliance_info.member_count = alliance_member_count
             alliance_info.is_blue = is_blue
+            alliance_info.is_blue_10 = is_blue_10
             alliance_info.save()
             logger.debug("Updated alliance model %s" % alliance_info)
         else:
             logger.warn("Attempting to update non-existing alliance model with id %s" % alliance_id)
 
     @staticmethod
-    def create_corporation_info(corp_id, corp_name, corp_ticker, corp_member_count, is_blue, alliance):
+    def create_corporation_info(corp_id, corp_name, corp_ticker, corp_member_count, is_blue, is_blue_10, alliance):
         logger.debug("Creating corp info for corp %s id %s" % (corp_name, corp_id))
         if not EveManager.check_if_corporation_exists_by_id(corp_id):
             corp_info = EveCorporationInfo()
@@ -120,6 +122,7 @@ class EveManager:
             corp_info.corporation_ticker = corp_ticker
             corp_info.member_count = corp_member_count
             corp_info.is_blue = is_blue
+            corp_info.is_blue_10 = is_blue_10
             if alliance:
                 corp_info.alliance = alliance
             corp_info.save()
@@ -128,13 +131,14 @@ class EveManager:
             logger.warn("Attempting to create existing corp model with id %s" % corp_id)
 
     @staticmethod
-    def update_corporation_info(corp_id, corp_member_count, alliance, is_blue):
+    def update_corporation_info(corp_id, corp_member_count, alliance, is_blue, is_blue_10):
         logger.debug("Updating corp model with id %s" % corp_id)
         if EveManager.check_if_corporation_exists_by_id(corp_id):
             corp_info = EveCorporationInfo.objects.get(corporation_id=corp_id)
             corp_info.member_count = corp_member_count
             corp_info.alliance = alliance
             corp_info.is_blue = is_blue
+            corp_info.is_blue_10 = is_blue_10
             corp_info.save()
             logger.debug("Updated corp model %s" % corp_info)
         else:
