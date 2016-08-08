@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class CorpStat(object):
-    def __init__(self, corp_id, corp=None, blue=False, blue_10=false):
+    def __init__(self, corp_id, corp=None, blue=False, blue_10=False):
         if corp:
             self.corp = corp
         else:
