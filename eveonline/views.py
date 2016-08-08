@@ -47,6 +47,13 @@ def disable_blue_member(user):
     deactivate_services(user)
     logger.info("Disabled blue user %s" % user)
 
+def disable_blue_10_member(user):
+    logger.debug("Disabling blue 10 user %s" % user)
+    remove_member_permission(user, 'blue_10_member')
+    remove_user_from_group(user, settings.DEFAULT_BLUE_10_GROUP)
+    deactivate_services(user)
+    logger.info("Disabled blue 10 user %s" % user)
+
 @login_required
 def add_api_key(request):
     logger.debug("add_api_key called by user %s" % request.user)
@@ -100,6 +107,9 @@ def api_key_removal(request, api_id):
                     if authinfo.is_blue:
                         logger.debug("Blue user %s deleting api for main character. Disabling." % request.user)
                         disable_blue_member(request.user)
+                    if authinfo.is_blue_10:
+                        logger.debug("Blue 10 user %s deleting api for main character. Disabling." % request.user)
+                        disable_blue_10_member(request.user)
                     else:
                         logger.debug("User %s deleting api for main character. Disabling." % request.user)
                         disable_member(request.user, authinfo.main_char_id)

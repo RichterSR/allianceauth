@@ -127,6 +127,8 @@ def groups_view(request):
             pass
         elif settings.DEFAULT_BLUE_GROUP in group.name:
             pass
+        elif settings.DEFAULT_BLUE_10_GROUP in group.name:
+            pass
         elif HiddenGroup.objects.filter(group=group).exists():
             pass
         else:

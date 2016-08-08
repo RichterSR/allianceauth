@@ -56,6 +56,9 @@ class UpdateKeyForm(forms.Form):
                 if 'BLUE' in states:
                     if EveApiManager.validate_blue_api(self.cleaned_data['api_id'], self.cleaned_data['api_key']) is False:
                         raise forms.ValidationError(u'API must meet blue requirements')
+                if 'BLUE_10' in states:
+                    if EveApiManager.validate_blue_api(self.cleaned_data['api_id'], self.cleaned_data['api_key']) is False:
+                        raise forms.ValidationError(u'API must meet blue requirements')
                 return self.cleaned_data
             except evelink.api.APIError as e:
                 logger.debug("Got error code %s while validating API %s" % (e.code, self.cleaned_data['api_id']))

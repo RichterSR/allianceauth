@@ -286,6 +286,9 @@ def assign_corp_group(auth):
             if state == "BLUE" and settings.BLUE_CORP_GROUPS:
                 logger.debug("Validating blue user %s has corp group assigned." % auth.user)
                 corp_group, c = Group.objects.get_or_create(name=corpname)
+            elif state == "BLUE_10" and settings.BLUE_CORP_GROUPS:
+                logger.debug("Validating blue 10 user %s has corp group assigned." % auth.user)
+                corp_group, c = Group.objects.get_or_create(name=corpname)
             elif state == "MEMBER" and settings.MEMBER_CORP_GROUPS:
                 logger.debug("Validating member %s has corp group assigned." % auth.user)
                 corp_group, c = Group.objects.get_or_create(name=corpname)
@@ -312,6 +315,9 @@ def assign_alliance_group(auth):
                 if state == "BLUE" and settings.BLUE_ALLIANCE_GROUPS:
                     logger.debug("Validating blue user %s has alliance group assigned." % auth.user)
                     alliance_group, c = Group.objects.get_or_create(name=alliancename)
+                elif state == "BLUE_10" and settings.BLUE_ALLIANCE_GROUPS:
+                    logger.debug("Validating blue 10 user %s has alliance group assigned." % auth.user)
+                    alliance_group, c = Group.objects.get_or_create(name=alliancename)
                 elif state == "MEMBER" and settings.MEMBER_ALLIANCE_GROUPS:
                     logger.debug("Validating member %s has alliance group assigned." % auth.user)
                     alliance_group, c = Group.objects.get_or_create(name=alliancename)
@@ -332,35 +338,42 @@ def assign_alliance_group(auth):
 def make_member(user):
     change = False
     logger.debug("Ensuring user %s has member permissions and groups." % user)
+    
     # ensure member is not blue right now
     if check_if_user_has_permission(user, 'blue_member'):
         logger.info("Removing user %s blue permission to transition to member" % user)
         remove_member_permission(user, 'blue_member')
         change = True
+
     if check_if_user_has_permission(user, 'blue_10_member'):
         logger.info("Removing user %s blue 10 permission to transition to member" % user)
         remove_member_permission(user, 'blue_10_member')
         change = True
+
     blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
     if blue_group in user.groups.all():
         logger.info("Removing user %s blue group" % user)
         user.groups.remove(blue_group)
         change = True
+
     blue_10_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_10_GROUP)
     if blue_10_group in user.groups.all():
         logger.info("Removing user %s blue 10 group" % user)
         user.groups.remove(blue_group)
         change = True
+
     # make member
     if check_if_user_has_permission(user, 'member') is False:
         logger.info("Adding user %s member permission" % user)
         add_member_permission(user, 'member')
         change = True
+
     member_group, c = Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
     if not member_group in user.groups.all():
         logger.info("Adding user %s to member group" % user)
         user.groups.add(member_group)
         change = True
+
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
     if auth.is_blue:
         logger.info("Marking user %s as non-blue" % user)
@@ -376,6 +389,7 @@ def make_blue(user):
     change = False
     logger.debug("Ensuring user %s has blue permissions and groups." % user)
     # ensure user is not a member
+
     if check_if_user_has_permission(user, 'member'):
         logger.info("Removing user %s member permission to transition to blue" % user)
         remove_member_permission(user, 'blue_member')
@@ -385,6 +399,44 @@ def make_blue(user):
         logger.info("Removing user %s member group" % user)
         user.groups.remove(member_group)
         change = True
+    
+    # make blue
+    if check_if_user_has_permission(user, 'blue_member') is False:
+        logger.info("Adding user %s blue permission" % user)
+        add_member_permission(user, 'blue_member')
+        change = True
+    blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
+    if not blue_group in user.groups.all():
+        logger.info("Adding user %s to blue group" % user)
+        user.groups.add(blue_group)
+        change = True
+
+    auth, c = AuthServicesInfo.objects.get_or_create(user=user)
+    if auth.is_blue is False:
+        logger.info("Marking user %s as blue" % user)
+        auth.is_blue = True
+        auth.is_blue_10 = False
+        auth.save()
+        change = True
+    assign_corp_group(auth)
+    assign_alliance_group(auth)
+    return change
+
+def make_blue_10(user):
+    change = False
+    logger.debug("Ensuring user %s has blue 10 permissions and groups." % user)
+    # ensure user is not a member
+
+    if check_if_user_has_permission(user, 'member'):
+        logger.info("Removing user %s member permission to transition to blue" % user)
+        remove_member_permission(user, 'blue_member')
+        change = True
+    member_group, c = Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
+    if member_group in user.groups.all():
+        logger.info("Removing user %s member group" % user)
+        user.groups.remove(member_group)
+        change = True
+    
     # make blue
     if check_if_user_has_permission(user, 'blue_member') is False:
         logger.info("Adding user %s blue permission" % user)
@@ -394,21 +446,24 @@ def make_blue(user):
         logger.info("Adding user %s blue 10 permission" % user)
         add_member_permission(user, 'blue_10_member')
         change = True
+
+
     blue_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
     if not blue_group in user.groups.all():
         logger.info("Adding user %s to blue group" % user)
         user.groups.add(blue_group)
         change = True
     blue_10_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_10_GROUP)
-    if not blue_10_group in user.groups.all():
+    if not blue_group in user.groups.all():
         logger.info("Adding user %s to blue 10 group" % user)
-        user.groups.add(blue_group)
+        user.groups.add(blue_10_group)
         change = True
+
     auth, c = AuthServicesInfo.objects.get_or_create(user=user)
     if auth.is_blue is False:
         logger.info("Marking user %s as blue" % user)
         auth.is_blue = True
-        auth.is_blue_10 = False
+        auth.is_blue_10 = True
         auth.save()
         change = True
     assign_corp_group(auth)
@@ -424,12 +479,16 @@ def determine_membership_by_character(char):
         if char.alliance_id == settings.ALLIANCE_ID:
             logger.debug("Character %s in owning alliance id %s" % (char, char.alliance_id))
             return "MEMBER"
+
     if EveCorporationInfo.objects.filter(corporation_id=char.corporation_id).exists() is False:
          logger.debug("No corp model for character %s corp id %s. Unable to check standings. Non-member." % (char, char.corporation_id))
          return False
     else:
          corp = EveCorporationInfo.objects.get(corporation_id=char.corporation_id)
-         if corp.is_blue:
+         if corp.is_blue_10:
+             logger.debug("Character %s member of blue 10 corp %s" % (char, corp))
+             return "BLUE_10"
+         elif corp.is_blue:
              logger.debug("Character %s member of blue corp %s" % (char, corp))
              return "BLUE"
          else:
@@ -460,6 +519,8 @@ def set_state(user):
         change = make_member(user)
     elif state == "BLUE":
         change = make_blue(user)
+    elif state == "BLUE_10":
+        change = make_blue_10(user)
     else:
         change = disable_member(user)
     if change:
@@ -481,6 +542,16 @@ def refresh_api(api_key_pair):
                     notify(user, "API Failed Validation", message="Your API key ID %s is not account-wide as required." % api_key_pair.api_id, level="danger")
                 if not EveApiManager.check_blue_api_is_full(api_key_pair.api_id, api_key_pair.api_key):
                     logger.info("Determined api key %s for blue user %s no longer meets minimum access mask as required." % (api_key_pair.api_id, user))
+                    still_valid = False
+                    notify(user, "API Failed Validation", message="Your API key ID %s does not meet access mask requirements." % api_key_pair.api_id, level="danger")
+        elif state == "BLUE_10":
+            if settings.BLUE_API_ACCOUNT:
+                if not EveApiManager.check_api_is_type_account(api_key_pair.api_id, api_key_pair.api_key):
+                    logger.info("Determined api key %s for blue 10 user %s is no longer type account as requred." % (api_key_pair.api_id, user))
+                    still_valid = False
+                    notify(user, "API Failed Validation", message="Your API key ID %s is not account-wide as required." % api_key_pair.api_id, level="danger")
+                if not EveApiManager.check_blue_api_is_full(api_key_pair.api_id, api_key_pair.api_key):
+                    logger.info("Determined api key %s for blue 10 user %s no longer meets minimum access mask as required." % (api_key_pair.api_id, user))
                     still_valid = False
                     notify(user, "API Failed Validation", message="Your API key ID %s does not meet access mask requirements." % api_key_pair.api_id, level="danger")
         elif state == "MEMBER":
@@ -575,7 +646,7 @@ def populate_alliance(id, blue=False):
         alliance = EveAllianceInfo.objects.get(alliance_id=id)
     else:
         EveManager.create_alliance_info(alliance_info['id'], alliance_info['name'], alliance_info['ticker'],
-                                             alliance_info['executor_id'], alliance_info['member_count'], blue)
+                                             alliance_info['executor_id'], alliance_info['member_count'], blue, blue_10)
     alliance = EveAllianceInfo.objects.get(alliance_id=id)
     for member_corp in alliance_info['member_corps']:
         if EveCorporationInfo.objects.filter(corporation_id=member_corp).exists():
@@ -587,7 +658,7 @@ def populate_alliance(id, blue=False):
             logger.info("Creating new alliance member corp id %s" % member_corp)
             corpinfo = EveApiManager.get_corporation_information(member_corp)
             EveManager.create_corporation_info(corpinfo['id'], corpinfo['name'], corpinfo['ticker'],
-                                                    corpinfo['members']['current'], blue, alliance)
+                                                    corpinfo['members']['current'], blue, blue_10, alliance)
 
 @task
 def update_alliance(id):

@@ -30,13 +30,14 @@ logger = logging.getLogger(__name__)
 
 
 class CorpStat(object):
-    def __init__(self, corp_id, corp=None, blue=False):
+    def __init__(self, corp_id, corp=None, blue=False, blue_10=false):
         if corp:
             self.corp = corp
         else:
            self.corp = EveCorporationInfo.objects.get(corporation_id=corp_id)
         self.n_fats = 0
         self.blue = blue
+        self.blue_10 = blue_10
 
     def avg_fat(self):
         return "%.2f" % (float(self.n_fats)/float(self.corp.member_count))

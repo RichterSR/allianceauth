@@ -33,6 +33,7 @@ def bootstrap_permissions():
     Permission.objects.get_or_create(codename="logging_notifications", content_type=ct, name="logging_notifications")
     Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
     Group.objects.get_or_create(name=settings.DEFAULT_BLUE_GROUP)
+    Group.objects.get_or_create(name=settings.DEFAULT_BLUE_10_GROUP)
     logger.info("Bootstrapped permissions for auth and created default groups.")
 
 
