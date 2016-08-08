@@ -19,6 +19,7 @@ from managers.discord_manager import DiscordOAuthManager
 from managers.discourse_manager import DiscourseManager
 from managers.ips4_manager import Ips4Manager
 from managers.smf_manager import smfManager
+from managers.seat_manager import SeatManager
 from managers.market_manager import marketManager
 from managers.pathfinder_manager import pathfinderManager
 from authentication.managers import AuthServicesInfoManager
@@ -31,6 +32,7 @@ from celerytask.tasks import update_smf_groups
 from celerytask.tasks import update_teamspeak3_groups
 from celerytask.tasks import update_discord_groups
 from celerytask.tasks import update_discourse_groups
+from celerytask.tasks import update_seat_roles
 from forms import JabberBroadcastForm
 from forms import FleetFormatterForm
 from forms import DiscordForm
@@ -881,6 +883,94 @@ def set_smf_password(request):
     logger.debug("Rendering form for user %s" % request.user)
     context = {'form': form, 'service': 'SMF'}
     return render_to_response('registered/service_password.html', context, context_instance=RequestContext(request))
+
+@login_required
+@user_passes_test(service_blue_alliance_test)
+def activate_seat(request):
+    logger.debug("activate_seat called by user %s" % request.user)
+    authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
+    # Valid now we get the main characters
+    character = EveManager.get_character_by_id(authinfo.main_char_id)
+    logger.debug("Checking SeAT for inactive users with the same username")
+    stat = SeatManager.check_user_status(character.character_name)
+    if stat == {}:
+        logger.debug("User not found, adding SeAT user for user %s with main character %s" % (request.user, character))
+        result = SeatManager.add_user(character.character_name, request.user.email)
+    else:
+        logger.debug("User found, resetting password")
+        username = SeatManager.enable_user(stat["name"])
+        password = SeatManager.update_user_password(username, request.user.email)
+        result = [username, password]
+    # if empty we failed
+    if result[0] != "":
+        AuthServicesInfoManager.update_user_seat_info(result[0], result[1], request.user)
+        logger.debug("Updated authserviceinfo for user %s with SeAT credentials.Adding eve-apis..." % request.user)
+        update_seat_roles.delay(request.user.pk)
+        logger.info("Succesfully activated SeAT for user %s" % request.user)
+        SeatManager.synchronize_eveapis(request.user)
+        return HttpResponseRedirect("/services/")
+    logger.error("Unsuccesful attempt to activate seat for user %s" % request.user)
+    return HttpResponseRedirect("/dashboard")
+
+
+@login_required
+@user_passes_test(service_blue_alliance_test)
+def deactivate_seat(request):
+    logger.debug("deactivate_seat called by user %s" % request.user)
+    authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
+    result = SeatManager.disable_user(authinfo.seat_username)
+    # false we failed
+    if result:
+        AuthServicesInfoManager.update_user_seat_info("", "", request.user)
+        logger.info("Successfully deactivated SeAT for user %s" % request.user)
+        return HttpResponseRedirect("/services/")
+    logger.error("Unsuccessful attempt to activate SeAT for user %s" % request.user)
+    return HttpResponseRedirect("/dashboard")
+
+
+@login_required
+@user_passes_test(service_blue_alliance_test)
+def reset_seat_password(request):
+    logger.debug("reset_seat_password called by user %s" % request.user)
+    authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
+    result = SeatManager.update_user_password(authinfo.seat_username, request.user.email)
+    # false we failed
+    if result != "":
+        AuthServicesInfoManager.update_user_seat_info(authinfo.seat_username, result, request.user)
+        logger.info("Succesfully reset SeAT password for user %s" % request.user)
+        return HttpResponseRedirect("/services/")
+    logger.error("Unsuccessful attempt to reset SeAT password for user %s" % request.user)
+    return HttpResponseRedirect("/dashboard")
+
+
+@login_required
+@user_passes_test(service_blue_alliance_test)
+def set_seat_password(request):
+    logger.debug("set_seat_password called by user %s" % request.user)
+    if request.method == 'POST':
+        logger.debug("Received POST request with form.")
+        form = ServicePasswordForm(request.POST)
+        logger.debug("Form is valid: %s" % form.is_valid())
+        if form.is_valid():
+            password = form.cleaned_data['password']
+            logger.debug("Form contains password of length %s" % len(password))
+            authinfo = AuthServicesInfoManager.get_auth_service_info(request.user)
+            result = SeatManager.update_user_password(authinfo.seat_username, request.user.email, plain_password=password)
+            if result != "":
+                AuthServicesInfoManager.update_user_seat_info(authinfo.seat_username, result, request.user)
+                logger.info("Succesfully reset SeAT password for user %s" % request.user)
+                return HttpResponseRedirect("/services/")
+            else:
+                logger.error("Failed to install custom SeAT password for user %s" % request.user)
+        else:
+            logger.error("Invalid SeAT password provided")
+    else:
+        logger.debug("Request is not type POST - providing empty form.")
+        form = ServicePasswordForm()
+    logger.debug("Rendering form for user %s" % request.user)
+    context = {'form': form, 'service': 'SeAT'}
+    return render_to_response('registered/service_password.html', context, context_instance=RequestContext(request))
+
 
 @login_required
 @user_passes_test(service_blue_alliance_test)

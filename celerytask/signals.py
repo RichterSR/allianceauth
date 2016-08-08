@@ -14,6 +14,7 @@ from .tasks import update_discord_groups
 from .tasks import update_teamspeak3_groups
 from .tasks import update_discourse_groups
 from .tasks import update_smf_groups
+from .tasks import update_seat_roles
 from .tasks import set_state
 from .tasks import disable_member
 from authentication.models import AuthServicesInfo
@@ -43,6 +44,8 @@ def m2m_changed_user_groups(sender, instance, action, *args, **kwargs):
             update_mumble_groups.delay(instance.pk)
         if auth.discourse_username:
             update_discourse_groups.delay(instance.pk)
+        if auth.seat_username:
+            update_seat_roles.delay(instance.pk)
 
 def trigger_all_ts_update():
     for auth in AuthServicesInfo.objects.filter(teamspeak3_uid__isnull=False):

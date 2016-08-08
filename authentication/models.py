@@ -23,6 +23,8 @@ class AuthServicesInfo(models.Model):
     ips4_id = models.CharField(max_length=254, blank=True, default="")
     smf_username = models.CharField(max_length=254, blank=True, default="")
     smf_password = models.CharField(max_length=254, blank=True, default="")
+    seat_username = models.CharField(max_length=254, blank=True, default="")
+    seat_password = models.CharField(max_length=254, blank=True, default="")
     market_username = models.CharField(max_length=254, blank=True, default="")
     market_password = models.CharField(max_length=254, blank=True, default="")
     pathfinder_username = models.CharField(max_length=254, blank=True, default="")

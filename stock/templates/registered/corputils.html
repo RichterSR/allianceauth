@@ -122,7 +122,11 @@
                                                 <img src="http://image.eveonline.com/Character/{{ player.main.character_id }}_32.jpg" class="img-circle">
                                             </td>
                                             <td>
-                                                <p>{{ maincharname }}</p>
+                                                {% if ENABLE_BLUE_SEAT or ENABLE_AUTH_SEAT %}
+                                                <p><a href="{{SEAT_URL}}/character/view/sheet/{{ player.main.character_id }}">{{ maincharname }}</a></p>
+                                                {% else %}
+                                                    <p>{{ maincharname }}</p>
+                                                {%  endif %}
                                             </td>
                                             <td>
                                                 {% if not corp.corporation_name ==  player.maincorp%}
@@ -137,7 +141,11 @@
                                             </td>
                                             <td>
                                                 {% for char in player.altlist %}
-                                                <p>{{ char.character_name }}</p>
+                                                    {% if ENABLE_BLUE_SEAT or ENABLE_AUTH_SEAT %}
+                                                        <p><a href="{{SEAT_URL}}/character/view/sheet/{{ char.character_id }}">{{ char.character_name }}</a></p>
+                                                    {% else %}
+                                                        <p>{{ char.character_name }}</p>
+                                                    {%  endif %}
                                                 {% endfor %}
                                             </td>
                                             <td>

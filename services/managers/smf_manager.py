@@ -235,7 +235,7 @@ class smfManager:
             logger.info("Disabled smf user %s" % username)
             return True
         except TypeError as e:
-            logger.exception("TypeError occured while disabling user %s - failed to disable." % username)
+            logger.exception("TypeError occurred while disabling user %s - failed to disable." % username)
             return False
 
     @staticmethod

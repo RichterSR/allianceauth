@@ -332,6 +332,35 @@
                 </td>
                 </tr>
             {% endif %}
+            {% if ENABLE_BLUE_SEAT %}
+                <tr>
+                <td class="text-center">SeAT</td>
+                <td class="text-center">{{ authinfo.seat_username }}</td>
+                <td class="text-center">{{ authinfo.seat_password }}</td>
+                <td class="text-center"><a href="{{ SEAT_URL }}">{{ SEAT_URL }}</a></td>
+                <td class="text-center">
+                    {% ifequal authinfo.seat_username "" %}
+                        <a href="{% url 'auth_activate_seat' %}">
+                            <button type="button" class="btn btn-warning"><span
+                                    class="glyphicon glyphicon-ok"></span></button>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'auth_set_seat_password' %}">
+                            <button type="button" class="btn btn-warning"><span
+                                    class="glyphicon glyphicon-pencil"></span></button>
+                        </a>
+                        <a href="{% url 'auth_reset_seat_password' %}">
+                            <button type="button" class="btn btn-primary"><span
+                                    class="glyphicon glyphicon-refresh"></span></button>
+                        </a>
+                        <a href="{% url 'auth_deactivate_seat' %}">
+                            <button type="button" class="btn btn-danger"><span
+                                    class="glyphicon glyphicon-remove"></span></button>
+                        </a>
+                    {% endifequal %}
+                </td>
+                </tr>
+            {% endif %}
             {% if ENABLE_BLUE_TEAMSPEAK3 %}
                 <tr>
                     <th class="text-center">{% trans "Service" %}</th>
@@ -683,6 +712,35 @@
                             </a>
                     {% endifequal %}
                 </td>
+            {% endif %}
+            {% if ENABLE_AUTH_SEAT %}
+                <tr>
+                    <td class="text-center">SeAT</td>
+                    <td class="text-center">{{ authinfo.seat_username }}</td>
+                    <td class="text-center">{{ authinfo.seat_password }}</td>
+                    <td class="text-center"><a href="{{ SEAT_URL }}">{{ SEAT_URL }}</a></td>
+                    <td class="text-center">
+                        {% ifequal authinfo.seat_username "" %}
+                            <a href="{% url 'auth_activate_seat' %}">
+                                <button type="button" class="btn btn-warning"><span
+                                        class="glyphicon glyphicon-ok"></span></button>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'auth_set_seat_password' %}">
+                                <button type="button" class="btn btn-warning"><span
+                                        class="glyphicon glyphicon-pencil"></span></button>
+                            </a>
+                            <a href="{% url 'auth_reset_seat_password' %}">
+                                <button type="button" class="btn btn-primary"><span
+                                        class="glyphicon glyphicon-refresh"></span></button>
+                            </a>
+                            <a href="{% url 'auth_deactivate_seat' %}">
+                                <button type="button" class="btn btn-danger"><span
+                                        class="glyphicon glyphicon-remove"></span></button>
+                            </a>
+                        {% endifequal %}
+                    </td>
+                </tr>
             {% endif %}
             {% if ENABLE_AUTH_TEAMSPEAK3 %}
                 <tr>

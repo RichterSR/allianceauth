@@ -160,6 +160,18 @@ class AuthServicesInfoManager:
             logger.error("Failed to update user %s IPS4 info: user does not exist." % user)
 
     @staticmethod
+    def update_user_seat_info(username, password, user):
+        if User.objects.filter(username=user.username).exists():
+            logger.debug("Updating user %s SeAT info: username %s" % (user, username))
+            authserviceinfo = AuthServicesInfoManager.__get_or_create(user)
+            authserviceinfo.seat_username = username
+            authserviceinfo.seat_password = password
+            authserviceinfo.save(update_fields=['seat_username', 'seat_password'])
+            logger.info("Updated user %s SeAT info in authservicesinfo model." % user)
+        else:
+            logger.error("Failed to update user %s SeAT info: user does not exist." % user)
+
+    @staticmethod
     def update_user_smf_info(username, password, user):
         if User.objects.filter(username=user.username).exists():
             logger.debug("Updating user %s forum info: username %s" % (user, username))
