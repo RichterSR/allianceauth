@@ -64,7 +64,7 @@
                 {% for response in responses %}
                     <div class="panel panel-default">
                         <div class="panel-heading">{{ response.question.title }}</div>
-                        <div class="alert">{{ response.answer }}</div>
+                        <div class="alert">{{ response.answer|linebreaksbr }}</div>
                     </div>
                 {% endfor %}
                 </div>
@@ -116,7 +116,7 @@
                                                 <div class="panel-heading" role="tab" id="">
                                                     <div class="panel-title">{{comment.created}} - {{ comment.user }}</div>
                                                 </div>
-                                                <div class="panel-body">{{ comment.text }}</div>
+                                                <div class="panel-body">{{ comment.text|linebreaks }}</div>
                                             </div>
                                         {% endfor %}
                                     </div>
