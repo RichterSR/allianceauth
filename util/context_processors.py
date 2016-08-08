@@ -69,3 +69,23 @@ def domain_url(request):
             'PATHFINDER_URL': settings.PATHFINDER_URL,
             'EXTERNAL_MEDIA_URL': settings.EXTERNAL_MEDIA_URL,
             'CURRENT_UTC_TIME': timezone.now()}
+
+def character_ids(request):
+     character_id = None
+     corporation_id = None
+     alliance_id = None
+     if request.user.is_authenticated():
+         from authentication.managers import AuthServicesInfoManager
+         auth = AuthServicesInfoManager.get_auth_service_info(request.user)
+         if auth.main_char_id:
+             from eveonline.models import EveCharacter
+             try:
+                 char = EveCharacter.objects.get(character_id=auth.main_char_id)
+                 character_id = char.character_id
+                 corporation_id = char.corporation_id
+                 alliance_id = char.alliance_id
+             except EveCharacter.DoesNotExist:
+                 pass
+     return { 'CHARACTER_CHARACTER_ID': character_id,
+              'CHARACTER_CORPORATION_ID': corporation_id,
+              'CHARACTER_ALLIANCE_ID': alliance_id}
