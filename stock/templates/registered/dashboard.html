@@ -1,13 +1,16 @@
 {% extends "public/base.html" %}
 {% load i18n %}
-{% block title %}Alliance Auth{% endblock %}
+{% block title %}Terran Confederation{% endblock %}
 {% block page_title %}{% trans "Dashboard" %}{% endblock page_title %}
+{% load staticfiles %}
+
 
 {% block content %}
 
-    <div class="col-lg-12">
+    <div class="col-lg-18">
         <h1 class="page-header text-center">{% trans "Dashboard" %}</h1>
-        {% if perms.auth.member %}
+        {% if user.is_authenticated %}
+
             <div class="col-lg-12 container" id="example">
 
 
@@ -19,17 +22,27 @@
                                     <div class="panel-heading">{% trans "Main character" %}</div>
 
                                     <div class="panel-body">
-                                        <div class="col-lg-5 col-sm-2"><img class=
-                                                                                    "ra-avatar img-responsive" src=
-                                                                                    "https://image.eveonline.com/Character/{{ character.character_id }}_128.jpg">
+                                        <div class="col-lg-2 col-sm-2">
+                                            <img src="{% static 'img/spacer_32.png' %}" border="0">
+                                            <img class="ra-avatar img-responsive" src="https://image.eveonline.com/Character/{{ character.character_id }}_256.jpg">
+                                            <img src="{% static 'img/spacer_32.png' %}" border="0">
                                         </div>
 
-                                        <div class="col-lg-7 col-sm-2">
-                                            <h4 class="">{{ character.character_name }}</h4>
+                                        <div class="col-lg-3 col-sm-2">
+                                            <h4 class=""><img src="{% static 'img/spacer_32.png' %}" border="0">{% trans "Name" %}:</h4>
+                                            <h5 class=""><img src="{% static 'img/spacer_32.png' %}" border="0">{% trans "Alliance" %}:</h5>
+                                            <h5 class=""><img src="{% static 'img/spacer_32.png' %}" border="0">{% trans "Corporation" %}:</h5>
+                                        </div>
+                                        <div class="col-lg-1 col-sm-2">
 
-                                            <p>{{ character.corporation_name }}</p>
-
-                                            <p>{{ character.alliance_name }}</p>
+                                        <div class="col-lg-6 col-sm-2">
+                                            {% if CHARACTER_ALLIANCE_ID == ALLIANCE_ID %}
+                                            <h5 class=""><img src="{% static 'img/index_images/tc_logo_32.png' %}">{{ character.alliance_name }}</h5>
+                                            {% elif CHARACTER_ALLIANCE_ID == "0" %}
+                                            <img src="{% static 'img/spacer_32.png' %}" border="0">
+                                            {% else %}
+                                            <h5 class=""><img src="https://image.eveonline.com/Alliance/{{ character.alliance_id }}_32.png">{{ character.alliance_name }}</h5>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -42,7 +55,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">{% trans "Groups" %}</div>
                             <div class="panel-body">
-                                <div style="height: 128px;overflow:-moz-scrollbars-vertical;overflow-y:auto;">
+                                <div style="height: 50%;overflow:-moz-scrollbars-vertical;overflow-y:auto;">
                                 <table class="table table-striped">
                                         {% for group in user.groups.all %}
                                             <tr>
@@ -59,12 +72,15 @@
 
                 </div>
             </div>
-        {% else %}
+           {% endif %}
+        </div>
+    {% if not perms.auth.member and not perms.auth.blue_10_memeber and not perms.auth.blue_member %}
+        <div class="col-lg-12 container" id="example">
             {% if IS_CORP %}
-                <div class="alert alert-danger" role="alert">{% trans "Not a part of the corporation." %}</div> 
             {% else %}
-                <div class="alert alert-danger" role="alert">{% trans "Not a part of the alliance." %}</div>
+                <div class="alert alert-danger" role="alert"><strong><center>! You are not a part of our alliance or you have no blue standing !</strong></center></div>
             {% endif %}
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
+
 {% endblock content %}

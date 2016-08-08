@@ -44,12 +44,12 @@
 <div id="logo">
     <p style="text-align:center">
 <!--Uncomment the below line to use a custom logo-->
-<!--<img src="{% static 'img/index_images/logo.png' %}" border="0">-->
+   <img src="{% static 'img/index_images/tc_logo_128.png' %}" border="0">
 <!--Comment the below block to use a custom logo-->
     {% if IS_CORP %}
-        <img src="https://image.eveonline.com/Corporation/{{ CORP_ID }}_256.png" border="0">
+<!--        <img src="https://image.eveonline.com/Corporation/{{ CORP_ID }}_256.png" border="0"> -->
     {% else %}
-        <img src="https://image.eveonline.com/Alliance/{{ ALLIANCE_ID }}_128.png" border="0">
+<!--        <img src="https://image.eveonline.com/Alliance/{{ ALLIANCE_ID }}_128.png" border="0"> -->
     {% endif %}
 <!--Stop commenting here-->
 </p>
@@ -60,6 +60,7 @@
             <img src="{% static 'img/index_images/auth.png' %}" border="0">
         </a>
     </p>
+    </p>
     {% if FORUM_URL %}
         <p style="text-align:center">
             <a href="{{FORUM_URL}}">
@@ -69,15 +70,38 @@
     {% endif %}
     {% if KILLBOARD_URL %}
         <p style="text-align:center">
-            <a href="{{KILLBOARD_URL}}">
-                <img src="{% static 'img/index_images/killboard.png' %}" border="0">
-            </a>
+        {% if CHARACTER_ALLIANCE_ID > "0" %}
+            <a href="{{KILLBOARD_URL}}alliance/{{ CHARACTER_ALLIANCE_ID }}" target="_blank"><img src="{% static 'img/index_images/killboard.png' %}" border="0"></a>
+        {% elif CHARACTER_CORPORATION_ID >= "2000000" %}
+            <a href="{{KILLBOARD_URL}}corporation/{{ CHARACTER_CORPORATION_ID }}" target="_blank"><img src="{% static 'img/index_images/killboard.png' %}" border="0"></a>
+        {% else %}
+            <a href="{{KILLBOARD_URL}}character/{{ CHARACTER_CHARACTER_ID }}" target="_blank"><img src="{% static 'img/index_images/killboard.png' %}" border="0"></a>
+        {% endif %}
         </p>
     {% endif %}
     {% if EXTERNAL_MEDIA_URL %}
         <p style="text-align:center">
             <a href="{{EXTERNAL_MEDIA_URL}}">
                 <img src="{% static 'img/index_images/media.png' %}" border="0">
+            </a>
+        </p>
+    {% endif %}
+    {% if perms.auth.member or perms.auth.blue_10_member %}
+        <p style="text-align:center">
+            <a href="https://tripwire.eve-apps.com/?system=j212319">
+                <img src="{% static 'img/index_images/tripwire.png' %}" border="0">
+            </a>
+        </p>
+        <p style="text-align:center">
+            <a href="{{ SLACK_URL }}">
+                <img src="{% static 'img/index_images/slack.png' %}" border="0">
+            </a>
+        </p>
+    {% endif %}
+    {% if perms.auth.member or perms.auth.blue_10_member or perms.auth.blue_memeber %}
+        <p style="text-align:center">
+            <a href="ts3server://{{ TEAMSPEAK3_PUBLIC_URL }}">
+                <img src="{% static 'img/index_images/teamspeak.png' %}" border="0">
             </a>
         </p>
     {% endif %}

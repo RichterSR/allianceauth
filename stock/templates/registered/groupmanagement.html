@@ -26,13 +26,13 @@
                     <td class="text-center">{{ acceptrequest.main_char.character_name }}</td>
                     <td class="text-center">{{ acceptrequest.group.name }}</td>
                     <td class="text-center">
-                        <a href="/group/request/accept/{{ acceptrequest.id }}">
+                        <a href="/group/request/accept/{{ acceptrequest.id }}/">
                             <button type="button" class="btn btn-success">
                                 {% trans "Accept" %}
                             </button>
                         </a>
 
-                        <a href="/group/request/reject/{{ acceptrequest.id }}">
+                        <a href="/group/request/reject/{{ acceptrequest.id }}/">
                             <button type="button" class="btn btn-danger">
                                 {% trans "Reject" %}
                             </button>
@@ -56,13 +56,13 @@
                     <td class="text-center">{{ leaverequest.main_char.character_name }}</td>
                     <td class="text-center">{{ leaverequest.group.name }}</td>
                     <td class="text-center">
-                        <a href="/group/leave_request/accept/{{ leaverequest.id }}">
+                        <a href="/group/leave_request/accept/{{ leaverequest.id }}/">
                             <button type="button" class="btn btn-success">
                                 {% trans "Accept" %}
                             </button>
                         </a>
 
-                        <a href="/group/leave_request/reject/{{ leaverequest.id }}">
+                        <a href="/group/leave_request/reject/{{ leaverequest.id }}/">
                             <button type="button" class="btn btn-danger">
                                 {% trans "Reject" %}
                             </button>

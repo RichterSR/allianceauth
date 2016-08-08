@@ -26,7 +26,7 @@
         #lang_select {
             margin-right: 25px;
         }
-        
+
         #f_lang_select {
             margin-right: 5px;
         }
@@ -42,19 +42,62 @@
 
             <div class="navbar-header ">
                 <a class="navbar-brand ">
-                    <div class="fa fa-cog fa-spin"></div>
+
+                     <img src="{% static 'img/index_images/tc_logo_32.png' %}" border="0"> {{ ALLIANCE_NAME }}
+
+
                     {% if IS_CORP %}
-                        {{ CORP_NAME }}
+<!--                       <img src="https://image.eveonline.com/Corporation/{{ CORP_ID }}_32.png" border="0"> {{ CORP_NAME }} -->
                     {% else %}
-                        {{ ALLIANCE_NAME }}
+<!--                       <img src="https://image.eveonline.com/Alliance/{{ ALLIANCE_ID }}_32.png" border="0"> {{ ALLIANCE_NAME }} -->
                     {% endif %}
                 </a>
             </div>
 
             <!-- /.navbar-header -->
+            <ul class="nav navbar-top-links navbar-left">
+                <li class="nav-link">&nbsp;&nbsp;</li>
+                <li class="nav-link"><a href="/">Home</a></li>
+                <li class="nav-link"><a href="{% url 'auth_dashboard' %}">Dashboard</a></li>
+               {% if FORUM_URL %}
+                  <li class="nav-link"><a href="{{FORUM_URL}}" target="_blank">Forum</a></li>
+               {% endif %}
+               {% if KILLBOARD_URL %}
+                   {% if CHARACTER_ALLIANCE_ID > "0" %}
+                       <li class="nav-link"><a href="{{KILLBOARD_URL}}alliance/{{ CHARACTER_ALLIANCE_ID }}" target="_blank">Killboard</a></li>
+                   {% elif CHARACTER_CORPORATION_ID >= "2000000" %}
+                       <li class="nav-link"><a href="{{KILLBOARD_URL}}corporation/{{ CHARACTER_CORPORATION_ID }}" target="_blank">Killboard</a></li>
+                   {% else %}
+                       <li class="nav-link"><a href="{{KILLBOARD_URL}}character/{{ CHARACTER_CHARACTER_ID }}" target="_blank">Killboard</a></li>
+                   {% endif %}
+               {% endif %}
+               {% if EXTERNAL_MEDIA_URL %}
+                 <li class="nav-link"><a href="{{EXTERNAL_MEDIA_URL}}" target="_blank">Media</a></li>
+               {% endif %}
+               {% if perms.auth.member or perms.auth.blue_10_member %}
+                   <li class="nav-link"><a href="https://tripwire.eve-apps.com/?system=j212319" target="_blank">Tripwire</a></li>
+                   <li class="nav-link"><a href="{{ FLEETUP_URL }}" target="_blank">Fleet-Up</a></li>
+               {% endif %}
+               {% if  perms.auth.member %}
+               <li class=nav-link"><a href="{{ SEAT_URL }}" target="_blank"><strong>SeAT</strong></a></li>
+               {% endif %}
+
+           </ul>
 
             <ul class="nav navbar-top-links navbar-right">
-                
+                 {% if  perms.auth.member or perms.auth.blue_10_member %}
+                     <li class="nav-link"><a href="{{ SLACK_URL }}" target="_blank">Slack</a></li>
+                 {% endif %}
+
+                 {% if  perms.auth.member or perms.auth.blue_10_member or perms.auth.blue_member %}
+                     <li class="nav-link"><a href="ts3server://{{TEAMSPEAK3_PUBLIC_URL}}">Teamspeak</a></li>
+                 {% endif %}
+
+                 {% if user.is_staff %}
+                   <li style="color: white;">||</li>
+                   <li class="nav-link"><a href="{% url 'admin:index' %}" target="_blank"><strong>Admin</strong></a></li>
+                 {% endif %}
+
                 <li class="nav-link">
                     <form id="f_lang_select" action="{% url 'set_language' %}" method="post">
                         {% csrf_token %}
@@ -70,11 +113,11 @@
                     </form>
                 </li>
                 {% if notifications %}
-                    <li class="nav-link active"><a href="{% url 'auth_notification_list' %}">
+                    <li class="nav-link active"><a href="{% url 'auth_notification_list' %}" target="_blank">
                         <i class="fa fa-flag"></i></a>
                     </li>
                 {% else %}
-                    <li class="nav-link"><a href="{% url 'auth_notification_list' %}">
+                    <li class="nav-link"><a href="{% url 'auth_notification_list' %}" target="_blank">
                         <i class="fa fa-flag-o"></i></a>
                     </li>
                 {% endif %}
@@ -83,9 +126,9 @@
                 {% else %}
                     <li><a href="{% url 'auth_login_user' %}">{% trans "Login" %}</a></li>
                 {% endif %}
-                
+
             </ul>
-            
+
             <!-- /.navbar-top-links -->
 
             <div class="navbar-default sidebar" role="navigation">
@@ -113,25 +156,24 @@
                                     class="fa fa-users fa-fw grayiconecolor"></i>{% trans " Characters" %}</a>
                         </li>
 
-                        {% if  perms.auth.member %}
-                            <li>
-                                <a {% ifequal request.path "/groups/" %} class="active" {% endifequal %}
-                                                                         href="{% url 'auth_groups' %}"><i
-                                        class="fa fa-cogs fa-sitemap grayiconecolor"></i>{% trans " Groups" %}</a>
-                            </li>
-                        {% endif %}
-
                         <li>
-                            <a {% ifequal request.path "/help/" %} class="active" {% endifequal %}
-                                                                   href="{% url 'auth_help' %}"><i
-                                    class="fa fa-question fa-fw grayiconecolor"></i>{% trans " Help" %}</a>
+                            <a {% ifequal request.path "/groups/" %} class="active" {% endifequal %}
+                                                                     href="{% url 'auth_groups' %}"><i
+                                    class="fa fa-cogs fa-sitemap grayiconecolor"></i>{% trans " Groups" %}</a>
                         </li>
 
+                        {% if  perms.auth.member or perms.auth.blue_10_member %}
+                            <li>
+                                <a {% ifequal request.path "/help/" %} class="active" {% endifequal %}
+                                                                       href="{% url 'auth_help' %}"><i
+                                        class="fa fa-question fa-fw grayiconecolor"></i>{% trans " Help" %}</a>
+                            </li>
+                        {% endif %}
 
                         <li class="text-center divider-horizontal">
                             <h5>{% trans "Aux Navigation" %}</h5>
                         </li>
-                        {% if  perms.auth.member or perms.auth.blue_member %}
+                        {% if  perms.auth.member or perms.auth.blue_10_member or perms.auth.blue_member %}
                             <li>
                                 <a {% ifequal request.path "/services/" %} class="active" {% endifequal %}
                                                                            href="{% url 'auth_services' %}"><i
@@ -164,56 +206,54 @@
                             </li>
                         {% endif %}
 
-                        {% if  perms.auth.member or perms.auth.blue_member %}
-							<li>
-                                <a {% ifequal request.path "/fits" %} class="active" {% endifequal %}
-                                                                                  href="{% url 'auth_fleet_fits' %}"><i
-                                        class="fa fa-bolt fa-fw grayiconecolor"></i>{% trans " Fleet Doctrines" %}</a>
-                            </li>
+<!--                                <li><a {% ifequal request.path "/fits" %} class="active" {% endifequal %} href="{% url 'auth_fleet_fits' %}">
+                              <i class="fa fa-bolt fa-fw grayiconecolor"></i>{% trans " Fleet Doctrines" %}</a>
+                            </li> -->
+
+                        {% if  perms.auth.member or perms.auth.blue_10_member %}
                             <li>
                                 <a {% ifequal request.path "/fleetup" %} class="active" {% endifequal %}
                                                                                   href="{% url 'auth_fleetup_view' %}"><i
                                         class="fa fa-clock-o fa-fw grayiconecolor"></i> Fleet-Up</a>
                             </li>
+                        {% endif %}
 
-			{% endif %}
-
-                        {% if  perms.auth.member or perms.auth.blue_member %}
+                        {% if  perms.auth.member or perms.auth.blue_10_member %}
                             {% if perms.auth.signature_view %}
-			      <li>
+<!--                          <li>
                                 <a {% ifequal request.path "/sigtracker" %} class="active" {% endifequal %}
                                                                                   href="{% url 'auth_signature_view' %}"><i
                                         class="fa fa-compass fa-fw grayiconecolor"></i>{% trans " Wormhole Tracker" %}</a>
-                            </li>
+                            </li> -->
                             {% endif %}
-			    {% if perms.auth.optimer_view %}
-                            <li>
+                            {% if perms.auth.optimer_view %}
+<!--                            <li>
                                 <a {% ifequal request.path "/optimer" %} class="active" {% endifequal %}
                                                                                   href="{% url 'auth_optimer_view' %}"><i
                                         class="fa fa-exclamation  fa-fw grayiconecolor"></i>{% trans " Fleet Operations" %}</a>
-                            </li>
-			    {% endif %}
+                            </li> -->
+                            {% endif %}
                             {% if perms.auth.timer_view %}
-                                <li>
+<!--                            <li>
                                     <a {% ifequal request.path "/timer_management" %} class="active" {% endifequal %}
                                                                                       href="{% url 'auth_timer_view' %}"><i
                                             class="fa fa-clock-o fa-fw grayiconecolor"></i>{% trans " Structure Timers" %}</a>
-                                </li>
+                                </li> -->
                             {% endif %}
-
-                            <li>
+<!--                    <li>
                             <a {% ifequal request.path "/fat/" %} class="active" {% endifequal %}
                                                                          href="{% url 'auth_fatlink_view' %}"><i
                                     class="fa fa-users fa-lightbulb-o grayiconecolor"></i> Fleet Activity Tracking</a>
-                             </li>
+                        </li> -->
 
+                        {% if  perms.auth.member or perms.auth.blue_10_member %}
                             <li>
                                 <a {% ifequal request.path "/srp/" %} class="active" {% endifequal %}
                                                                       href="{% url 'auth_srp_management_view' %}"><i
                                         class="fa fa-money fa-fw grayiconecolor"></i>{% trans " Ship Replacement" %}</a>
                             </li>
-
                         {% endif %}
+                    {% endif %}
 
 
                         <li class="text-center divider-horizontal">
@@ -226,20 +266,20 @@
                         </li>
 
                         {% if  perms.auth.member or perms.auth.blue_member %}
-                            <li>
+<!--                            <li>
                                 <a {% ifequal request.path "/tool/fleet_formatter_tool/" %}
                                     class="active" {% endifequal %}
                                     href="{% url 'auth_fleet_format_tool_view' %}"><i
                                         class="fa fa-space-shuttle fa-fw grayiconecolor"></i>{% trans " Fleet Broadcast Formatter" %}</a>
-                            </li>
+                            </li> -->
                         {% endif %}
 
                         {% if perms.auth.jabber_broadcast %}
-                            <li>
+<!--                            <li>
                                 <a {% ifequal request.path "/services/jabber_broadcast/" %}
                                     class="active" {% endifequal %} href="{% url 'auth_jabber_broadcast_view' %}"><i
                                         class="fa fa-lock fa-bullhorn grayiconecolor"></i>{% trans " Jabber Broadcast" %}</a>
-                            </li>
+                            </li> -->
                         {% endif %}
                     </ul>
 
@@ -250,9 +290,9 @@
         </nav>
 
         <div id="page-wrapper">
-            <div class="container">
-            	{% block content %}
-            	{% endblock content %}
+            <div>
+                {% block content %}
+                {% endblock content %}
             </div>
         </div>
     </div>

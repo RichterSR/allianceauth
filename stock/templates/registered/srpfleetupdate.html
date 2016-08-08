@@ -13,7 +13,7 @@
 
     <div class="col-lg-12">
         <h1 class="page-header text-center">{% trans "Update AAR Link" %}</h1>
-
+        {% if perms.auth.member %}
         <div class="container-fluid">
             <div class="col-md-4 col-md-offset-4">
                 <div class="row">
@@ -31,6 +31,16 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+        {% if not perms.auth.member and not perms.auth.blue_10_member and not perms.auth.blue_member %}
+            <div class="col-lg-12 container" id="example">
+                {% if IS_CORP %}
+                    <div class="alert alert-danger" role="alert"><strong><center>! You are not a part of our corporation or you have no blue standing !</strong></center></div>
+                {% else %}
+                    <div class="alert alert-danger" role="alert"><strong><center>! You are not a part of our alliance or you have no blue standing !</strong></center></div>
+                {% endif %}
+            </div>
+        {% endif %}
 
     </div>
 
