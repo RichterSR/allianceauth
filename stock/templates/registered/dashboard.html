@@ -34,8 +34,10 @@
                                             <h5 class=""><img src="{% static 'img/spacer_32.png' %}" border="0">{% trans "Corporation" %}:</h5>
                                         </div>
                                         <div class="col-lg-1 col-sm-2">
+                                        </div> 
 
                                         <div class="col-lg-6 col-sm-2">
+                                            <h4 class=""><img src="{% static 'img/spacer_32.png' %}" border="0"><a href="http://seat.terran-confederation.de/character/view/sheet/{{ character.character_id }}" target="_blank">{{ character.character_name }}</a></h4>
                                             {% if CHARACTER_ALLIANCE_ID == ALLIANCE_ID %}
                                             <h5 class=""><img src="{% static 'img/index_images/tc_logo_32.png' %}">{{ character.alliance_name }}</h5>
                                             {% elif CHARACTER_ALLIANCE_ID == "0" %}
@@ -43,6 +45,7 @@
                                             {% else %}
                                             <h5 class=""><img src="https://image.eveonline.com/Alliance/{{ character.alliance_id }}_32.png">{{ character.alliance_name }}</h5>
                                             {% endif %}
+                                            <h5 class=""><img src="https://image.eveonline.com/Corporation/{{ character.corporation_id }}_32.png"> <a href="http://seat.terran-confederation.de/corporation/view/summary/{{ character.corporation_id }}" target="_blank">{{ character.corporation_name }}</a></h5>
                                         </div>
                                     </div>
                                 </div>
@@ -74,9 +77,11 @@
             </div>
            {% endif %}
         </div>
+ 
     {% if not perms.auth.member and not perms.auth.blue_10_memeber and not perms.auth.blue_member %}
         <div class="col-lg-12 container" id="example">
             {% if IS_CORP %}
+                <div class="alert alert-danger" role="alert"><strong><center>! You are not a part of our corporation or you have no blue standing !</strong></center></div> 
             {% else %}
                 <div class="alert alert-danger" role="alert"><strong><center>! You are not a part of our alliance or you have no blue standing !</strong></center></div>
             {% endif %}
