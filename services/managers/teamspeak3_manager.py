@@ -1,5 +1,7 @@
 from django.conf import settings
 
+from django.template.defaultfilters import truncatechars
+
 from services.managers.util.ts3 import TS3Server
 from services.models import TSgroup
 import logging
@@ -26,11 +28,17 @@ class Teamspeak3Manager:
 
     @staticmethod
     def __generate_username(username, corp_ticker):
-        return "[" + corp_ticker + "]" + username
+        sanatized = "[" + corp_ticker + "]" + username
+        sanatized = truncatechars(sanatized, 33)
+        sanatized = sanatized.replace("...","")
+        return sanatized
 
     @staticmethod
     def __generate_username_blue(username, corp_ticker):
-        return "[BLUE][" + corp_ticker + "]" + username
+        sanatized =  "[BLUE][" + corp_ticker + "]" + username
+        sanatized = truncatechars(sanatized, 33)
+        sanatized = sanatized.replace("...","")
+        return sanatized
 
     @staticmethod
     def _get_userid(uid):
