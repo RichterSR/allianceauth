@@ -63,7 +63,11 @@ def domain_url(request):
             'JACK_KNIFE_URL': settings.JACK_KNIFE_URL,
             'DISCORD_SERVER_ID': settings.DISCORD_GUILD_ID,
             'KILLBOARD_URL': settings.KILLBOARD_URL,
+<<<<<<< HEAD
             'SEAT_URL': settings.SEAT_URL,
+=======
+            'SEAT_URL': settings.SEAT_URL, 
+>>>>>>> origin/master
             'DISCOURSE_URL': settings.DISCOURSE_URL,
             'IPS4_URL': settings.IPS4_URL,
             'SMF_URL': settings.SMF_URL,
@@ -73,7 +77,10 @@ def domain_url(request):
             'FLEETUP_URL': settings.FLEETUP_URL,
             'FLEETUP_JOIN_URL': settings.FLEETUP_JOIN_URL,
             'SLACK_URL': settings.SLACK_URL,
+<<<<<<< HEAD
             'WIKI_URL': settings.WIKI_URL,
+=======
+>>>>>>> origin/master
             'CURRENT_UTC_TIME': timezone.now()}
 
 def character_ids(request):

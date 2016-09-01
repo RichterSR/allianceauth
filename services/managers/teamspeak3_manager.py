@@ -28,13 +28,26 @@ class Teamspeak3Manager:
 
     @staticmethod
     def __generate_username(username, corp_ticker):
+<<<<<<< HEAD
         sanatized = "[" + corp_ticker + "]" + username 
         return sanatized[:30]
+=======
+        sanatized = "[" + corp_ticker + "]" + username
+        sanatized = truncatechars(sanatized, 33)
+        sanatized = sanatized.replace("...","")
+        return sanatized
+>>>>>>> origin/master
 
     @staticmethod
     def __generate_username_blue(username, corp_ticker):
         sanatized =  "[BLUE][" + corp_ticker + "]" + username
+<<<<<<< HEAD
         return sanatized[:30]
+=======
+        sanatized = truncatechars(sanatized, 33)
+        sanatized = sanatized.replace("...","")
+        return sanatized
+>>>>>>> origin/master
 
     @staticmethod
     def _get_userid(uid):
