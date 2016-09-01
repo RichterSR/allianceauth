@@ -10,6 +10,7 @@ from services.managers.teamspeak3_manager import Teamspeak3Manager
 from services.managers.discord_manager import DiscordOAuthManager
 from services.managers.xenforo_manager import XenForoManager
 from services.managers.seat_manager import SeatManager
+from services.managers.market_manager import marketManager
 
 import logging
 
@@ -84,6 +85,11 @@ def deactivate_services(user):
         SeatManager.disable_user(authinfo.seat_username)
         AuthServicesInfoManager.update_user_seat_info("", "", user)
         change = True
+    if authinfo.market_username and authinfo.market_username != "":  
+        logger.debug("User %s has a Market account %s. Deleting." % (user, authinfo.market_username))  
+        marketManager.disable_user(authinfo.market_username)  
+        AuthServicesInfoManager.update_user_market_info("", "", user)  
+        change = True  
     if change:
         notify(user, "Services Disabled", message="Your services accounts have been disabled.", level="danger")
 

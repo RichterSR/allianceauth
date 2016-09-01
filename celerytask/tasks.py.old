@@ -359,7 +359,7 @@ def make_member(user):
     blue_10_group, c = Group.objects.get_or_create(name=settings.DEFAULT_BLUE_10_GROUP)
     if blue_10_group in user.groups.all():
         logger.info("Removing user %s blue 10 group" % user)
-        user.groups.remove(blue_10_group)
+        user.groups.remove(blue_group)
         change = True
 
     # make member
@@ -378,11 +378,6 @@ def make_member(user):
     if auth.is_blue:
         logger.info("Marking user %s as non-blue" % user)
         auth.is_blue = False
-        auth.save()
-        change = True
-    if auth.is_blue_10:
-        logger.info("Marking user %s as non-blue" % user)
-        auth.is_blue = False
         auth.is_blue_10 = False
         auth.save()
         change = True
@@ -397,7 +392,7 @@ def make_blue(user):
 
     if check_if_user_has_permission(user, 'member'):
         logger.info("Removing user %s member permission to transition to blue" % user)
-        remove_member_permission(user, 'member')
+        remove_member_permission(user, 'blue_member')
         change = True
     member_group, c = Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
     if member_group in user.groups.all():
@@ -420,6 +415,7 @@ def make_blue(user):
     if auth.is_blue is False:
         logger.info("Marking user %s as blue" % user)
         auth.is_blue = True
+        auth.is_blue_10 = False
         auth.save()
         change = True
     assign_corp_group(auth)
@@ -433,7 +429,7 @@ def make_blue_10(user):
 
     if check_if_user_has_permission(user, 'member'):
         logger.info("Removing user %s member permission to transition to blue" % user)
-        remove_member_permission(user, 'member')
+        remove_member_permission(user, 'blue_member')
         change = True
     member_group, c = Group.objects.get_or_create(name=settings.DEFAULT_AUTH_GROUP)
     if member_group in user.groups.all():
@@ -639,8 +635,8 @@ def run_api_refresh():
                     notify(user, "Main Character Reset", message="Your specified main character no longer has a model.\nThis could be the result of an invalid API\nYour main character ID has been reset.", level="warn")
         set_state(user)
 
-def populate_alliance(id, blue=False, blue_10=False):
-    logger.debug("Populating alliance model with id %s blue %s blue_10 %s" % (id, blue, blue_10))
+def populate_alliance(id, blue=False):
+    logger.debug("Populating alliance model with id %s blue %s" % (id, blue))
     alliance_info = EveApiManager.get_alliance_information(id)
 
     if not alliance_info:
@@ -745,7 +741,7 @@ def run_corp_update():
             else:
                 logger.info("Creating model for owning corp with id %s" % ownercorpinfo['id'])
                 EveManager.create_corporation_info(ownercorpinfo['id'], ownercorpinfo['name'], ownercorpinfo['ticker'],
-                                                       ownercorpinfo['members']['current'], False, False, alliance)
+                                                       ownercorpinfo['members']['current'], False, False , alliance)
 
         # validate and create corp models for member corps of owning alliance
         if alliance:
@@ -781,7 +777,7 @@ def run_corp_update():
         if standings:
             standings = standings[standing_level]
             for standing in standings:
-                if int(standings[standing]['standing']) == settings.BLUE_STANDING:
+                if int(standings[standing]['standing']) >= settings.BLUE_STANDING:
                     logger.debug("Standing %s meets threshold" % standing)
                     if EveApiManager.check_if_id_is_alliance(standing):
                         logger.debug("Standing %s is an alliance" % standing)
@@ -790,10 +786,13 @@ def run_corp_update():
                             if alliance.is_blue is not True:
                                 logger.info("Updating alliance %s as blue" % alliance)
                                 alliance.is_blue = True
-                                alliance.is_blue_10 = False
+                                alliance.save()
+                            if alliance.is_blue_10 is not True:
+                                logger.info("Updating alliance %s as blue_10" % alliance)
+                                alliance.is_blue_10 = True
                                 alliance.save()
                         else:
-                            populate_alliance(standing, blue=True, blue_10=False)
+                            populate_alliance(standing, blue=True)
                     elif EveApiManager.check_if_id_is_corp(standing):
                         logger.debug("Standing %s is a corp" % standing)
                         if EveCorporationInfo.objects.filter(corporation_id=standing).exists():
@@ -802,36 +801,8 @@ def run_corp_update():
                                 logger.info("Updating corp %s as blue" % corp)
                                 corp.is_blue = True
                                 corp.save()
-                        else:
-                            logger.info("Creating model for blue corp with id %s" % standing)
-                            corpinfo = EveApiManager.get_corporation_information(standing)
-                            corp_alliance = None
-                            if EveAllianceInfo.objects.filter(alliance_id=corpinfo['alliance']['id']).exists():
-                                logger.debug("New corp model for standing %s has existing alliance model" % standing)
-                                corp_alliance = EveAllianceInfo.objects.get(alliance_id=corpinfo['alliance']['id'])
-                            EveManager.create_corporation_info(corpinfo['id'], corpinfo['name'], corpinfo['ticker'],
-                                                               corpinfo['members']['current'], True, False, corp_alliance)
-                #Blue_10
-                if int(standings[standing]['standing']) > settings.BLUE_STANDING:
-                    logger.debug("Standing %s meets threshold" % standing)
-                    if EveApiManager.check_if_id_is_alliance(standing):
-                        logger.debug("Standing %s is an alliance" % standing)
-                        if EveAllianceInfo.objects.filter(alliance_id=standing).exists():
-                            alliance = EveAllianceInfo.objects.get(alliance_id=standing)
-                            if alliance.is_blue_10 is not True:
-                                logger.info("Updating alliance %s as blue" % alliance)
-                                alliance.is_blue = True
-                                alliance.is_blue_10 = True
-                                alliance.save()
-                        else:
-                            populate_alliance(standing, blue=True, blue_10=True)
-                    elif EveApiManager.check_if_id_is_corp(standing):
-                        logger.debug("Standing %s is a corp" % standing)
-                        if EveCorporationInfo.objects.filter(corporation_id=standing).exists():
-                            corp = EveCorporationInfo.objects.get(corporation_id=standing)
                             if corp.is_blue_10 is not True:
-                                logger.info("Updating corp %s as blue" % corp)
-                                corp.is_blue = True
+                                logger.info("Updating corp %s as blue_10" % corp)
                                 corp.is_blue_10 = True
                                 corp.save()
                         else:
@@ -842,7 +813,7 @@ def run_corp_update():
                                 logger.debug("New corp model for standing %s has existing alliance model" % standing)
                                 corp_alliance = EveAllianceInfo.objects.get(alliance_id=corpinfo['alliance']['id'])
                             EveManager.create_corporation_info(corpinfo['id'], corpinfo['name'], corpinfo['ticker'],
-                                                               corpinfo['members']['current'], True, True, corp_alliance)
+                                                               corpinfo['members']['current'], True, False, corp_alliance)
                     
 
         # update alliance standings
@@ -856,18 +827,6 @@ def run_corp_update():
                 logger.info("Alliance %s no longer in standings" % alliance)
                 alliance.is_blue = False
                 alliance.save()
-
-        for alliance in EveAllianceInfo.objects.filter(is_blue_10=True):
-            if int(alliance.alliance_id) in standings:
-                if float(standings[int(alliance.alliance_id)]['standing']) < float(settings.BLUE_STANDING):
-                    logger.info("Alliance %s no longer meets minimum blue standing threshold" % alliance)
-                    alliance.is_blue_10 = False
-                    alliance.save()
-            else:
-                logger.info("Alliance %s no longer in standings" % alliance)
-                alliance.is_blue_10 = False
-                alliance.save()
-
     
         # update corp standings
         for corp in EveCorporationInfo.objects.filter(is_blue=True):
@@ -886,24 +845,6 @@ def run_corp_update():
                     logger.info("Corp %s is no longer blue" % corp)
                     corp.is_blue = False
                     corp.save()
-
-        for corp in EveCorporationInfo.objects.filter(is_blue_10=True):
-            if int(corp.corporation_id) in standings:
-                if float(standings[int(corp.corporation_id)]['standing']) < float(settings.BLUE_STANDING):
-                    logger.info("Corp %s no longer meets minimum blue standing threshold" % corp)
-                    corp.is_blue_10 = False
-                    corp.save()
-            else:
-                if corp.alliance:
-                    if not corp.alliance.is_blue:
-                        logger.info("Corp %s and its alliance %s are no longer blue" % (corp, corp.alliance))
-                        corp.is_blue_10 = False
-                        corp.save()
-                else:
-                    logger.info("Corp %s is no longer blue" % corp)
-                    corp.is_blue = False
-                    corp.save()
-
 
         # delete unnecessary alliance models
         for alliance in EveAllianceInfo.objects.filter(is_blue=False):
@@ -950,4 +891,3 @@ def run_ts3_group_update():
     if is_teamspeak3_active():
         logger.debug("TS3 installed. Syncing local group objects.")
         Teamspeak3Manager._sync_ts_group_db()
-

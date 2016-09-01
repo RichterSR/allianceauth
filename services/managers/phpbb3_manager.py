@@ -66,9 +66,8 @@ class Phpbb3Manager:
 
     @staticmethod
     def __santatize_username(username):
-        sanatized = username.replace(" ", "_")
-        sanatized = sanatized.replace("'", "_")
-        return sanatized.lower()
+        username = username.replace("'", "-")
+        return username.lower()
 
     @staticmethod
     def __get_group_id(groupname):
